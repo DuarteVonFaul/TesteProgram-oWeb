@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Venda</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>Registre Cliente</h2>
+    <input type="text" id="buyer-name">
+    <button id="register-buyer-btn">Registrar Cliente</button>
+
+    <h3>Clientes Registrados</h3>
+    <ul id="buyer-list"></ul>
+
+    <h2>Registre Produto</h2>
+    <input type="text" id="product-name">
+    <input type="number" id="product-price">
+    <button id="register-product-btn">Registrar Produto</button>
+
+    <h3>Produtos Registrados</h3>
+    <ul id="product-list"></ul>
+
+    <h2>Vincular Cliente e Produto</h2>
+    <select id="buyer-select"></select>
+    <select id="product-select"></select>
+    <button id="link-buyer-product-btn">Vincular</button>
+
+    <h2>Cálculo de Custo</h2>
+    <ul id="cost-calculation"></ul>
+
+    <h2>Total da Taxa de Serviço</h2>
+    <p id="total-service-fee"></p>
+
+    <script>
+        $(document).ready(function() {
+            loadBuyers();
+            loadProducts();
+
+            function loadBuyers() {
+                $.ajax({
+                    url: '/sale/buyers',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        var buyerList = $('#buyer-list');
+                        var buyerSelect = $('#buyer-select');
+                        buyerList.empty();
+                        buyerSelect.empty();
+                        response.forEach(function(buyer) {
+                            buyerList.append('<li>' + buyer.name + '</li>');
+                            buyerSelect.append('<option value="'+ buyer.id + '">' + buyer.name + '</option>');
+                        });
+                    }
+                });
+            }
+
+            function loadProducts() {
+                $.ajax({
+                    url: '/sale/products',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        var productList = $('#product-list');
+                        var productSelect = $('#product-select');
+                        productList.empty();
+                        productSelect.empty();
+                        response.forEach(function(product) {
+                            productList.append('<li>' + product.name + ' - R$ ' + product.price + '</li>');
+                            productSelect.append('<option value="' + product.id + '">' + product.name + ' - R$ ' + product.price + '</option>');
+                        });
+                    }
+                });
+            }
+
+            function loadCostCalculation() {
+                $.ajax({
+                    url: '/sale/calculate',
+                    type: 'POST',
+                    success: function(response) {
+                        var costCalculation = $('#cost-calculation');
+                        costCalculation.empty();
+                        response.buyers.forEach(function(buyer) {
+                            costCalculation.append('<li>' + buyer.name + ': R$ ' + (buyer.price + buyer.valueAdditional) + '</li>');
+                        });
+                        var totalServiceFee = $('#total-service-fee');
+                        totalServiceFee.text('Total da Taxa de Serviço: R$ ' + response.total_service_fee.toFixed(2));
+                    }
+                });
+            }
+
+            $('#register-buyer-btn').click(function() {
+                var buyerName = $('#buyer-name').val();
+                $.ajax({
+                    url: '/sale/buyer/register',
+                    type: 'POST',
+                    data: { buyer: buyerName },
+                    success: function(response) {
+                        loadBuyers();
+                    }
+                });
+            });
+
+            $('#register-product-btn').click(function() {
+                var productName = $('#product-name').val();
+                var productPrice = $('#product-price').val();
+                $.ajax({
+                    url: '/sale/product/register',
+                    type: 'POST',
+                    data: { product: productName, price: productPrice },
+                    success: function(response) {
+                        loadProducts();
+                    }
+                });
+            });
+
+            $('#link-buyer-product-btn').click(function() {
+                var buyerId = parseInt($('#buyer-select').val());
+                var productId = parseInt($('#product-select').val());
+                $.ajax({
+                    url: '/sale/buyer/addProduct',
+                    type: 'POST',
+                    data: { buyer_id: buyerId, product_id: productId },
+                    success: function(response) {
+                        loadCostCalculation();
+                    }
+                });
+            });
+
+            loadCostCalculation();
+        });
+    </script>
+</body>
+</html>

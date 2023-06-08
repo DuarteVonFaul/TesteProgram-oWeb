@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jogo da Vida</title>
+    <style>
+        .row {
+            display: flex;
+        }
+
+        .cell {
+            width: 20px;
+            height: 20px;
+            border: 1px solid black;
+        }
+
+        .alive {
+            background-color: black;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Jogo da Vida</h1>
+    <button id="initialize-btn">Inicializar</button>
+    <button id="next-generation-btn">Próxima Geração</button>
+    <div id="board"></div>
+
+    <script>
+        // Função para exibir o tabuleiro
+        function renderBoard(board) {
+            var boardElement = document.getElementById("board");
+            boardElement.innerHTML = "";
+
+            for (var i = 0; i < board.length; i++) {
+                var rowElement = document.createElement("div");
+                rowElement.className = "row";
+
+                for (var j = 0; j < board[i].length; j++) {
+                    var cellElement = document.createElement("div");
+                    cellElement.className = "cell";
+                    if (board[i][j] === 1) {
+                        cellElement.classList.add("alive");
+                    }
+                    rowElement.appendChild(cellElement);
+                }
+
+                boardElement.appendChild(rowElement);
+            }
+        }
+
+        // Função para atualizar o estado do tabuleiro
+        function updateBoard() {
+            fetch('/game-of-life/update_board', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => renderBoard(data.board));
+        }
+
+        // Função para inicializar o tabuleiro
+        function initializeBoard() {
+            fetch('/game-of-life/initialize_board', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => renderBoard(data.board));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar o tabuleiro
+            initializeBoard();
+
+            // Evento do botão "Próxima Geração"
+            document.getElementById("next-generation-btn").addEventListener("click", function () {
+                updateBoard();
+            });
+
+            // Evento do botão "Inicializar"
+            document.getElementById("initialize-btn").addEventListener("click", function () {
+                initializeBoard();
+            });
+        });
+    </script>
+</body>
+</html>

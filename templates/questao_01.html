@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Conversor de Números Romanos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            padding: 5px;
+            font-size: 16px;
+        }
+
+        input[type="submit"] {
+            padding: 5px 10px;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Conversor de Números Romanos</h1>
+    <form method="POST" action="/calc">
+        <input type="text" name="number" placeholder="Digite um número" required>
+        <input type="submit" value="Converter">
+    </form>
+    {% if number and converted_number %}
+        <p>O número {{ number }} convertido é: {{ converted_number }}</p>
+    {% endif %}
+</body>
+</html>
