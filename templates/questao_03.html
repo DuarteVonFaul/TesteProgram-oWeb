@@ -5,19 +5,19 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h2>Registre Cliente</h2>
+    <h2>Registrar Cliente</h2>
     <input type="text" id="buyer-name">
     <button id="register-buyer-btn">Registrar Cliente</button>
 
-    <h3>Clientes Registrados</h3>
+    <h3>Lista de Cliente</h3>
     <ul id="buyer-list"></ul>
 
-    <h2>Registre Produto</h2>
+    <h2>Registrar Pedido</h2>
     <input type="text" id="product-name">
     <input type="number" id="product-price">
     <button id="register-product-btn">Registrar Produto</button>
 
-    <h3>Produtos Registrados</h3>
+    <h3>Lista de Pedidos</h3>
     <ul id="product-list"></ul>
 
     <h2>Vincular Cliente e Produto</h2>
@@ -25,10 +25,12 @@
     <select id="product-select"></select>
     <button id="link-buyer-product-btn">Vincular</button>
 
-    <h2>Cálculo de Custo</h2>
+    <h2>Lista de Consumo</h2>
+    <dl id="buyer-items"></dl>
+    
+    <button id="link-buyer-pay-btn">Calcular Pagamento</button>
+    <h2>Divisão de Valor</h2>
     <ul id="cost-calculation"></ul>
-
-    <h2>Total da Taxa de Serviço</h2>
     <p id="total-service-fee"></p>
 
     <script>
@@ -44,11 +46,17 @@
                     success: function(response) {
                         var buyerList = $('#buyer-list');
                         var buyerSelect = $('#buyer-select');
+                        var buyerItems = $('#buyer-items');
                         buyerList.empty();
                         buyerSelect.empty();
-                        response.forEach(function(buyer) {
+                        buyerItems.empty();
+                        response.forEach(function(buyer, index) {
+                            buyerItems.append('<dt>' + buyer.name + '</dt>')
+                            buyer.product.forEach(function(product){
+                                buyerItems.append('<dd>' + product.name + '</dd>');
+                            })
                             buyerList.append('<li>' + buyer.name + '</li>');
-                            buyerSelect.append('<option value="'+ buyer.id + '">' + buyer.name + '</option>');
+                            buyerSelect.append('<option value="' + index + '">' + index + '. ' + buyer.name + '</option>');
                         });
                     }
                 });
@@ -64,9 +72,9 @@
                         var productSelect = $('#product-select');
                         productList.empty();
                         productSelect.empty();
-                        response.forEach(function(product) {
+                        response.forEach(function(product, index) {
                             productList.append('<li>' + product.name + ' - R$ ' + product.price + '</li>');
-                            productSelect.append('<option value="' + product.id + '">' + product.name + ' - R$ ' + product.price + '</option>');
+                            productSelect.append('<option value="' + index + '">' + index + '. '  + product.name + ' - R$ ' + product.price + '</option>');
                         });
                     }
                 });
@@ -80,10 +88,10 @@
                         var costCalculation = $('#cost-calculation');
                         costCalculation.empty();
                         response.buyers.forEach(function(buyer) {
-                            costCalculation.append('<li>' + buyer.name + ': R$ ' + (buyer.price + buyer.valueAdditional) + '</li>');
+                            costCalculation.append('<li>' + buyer.name + ': R$ ' + (buyer.price + buyer.valueAddtional) + '</li>');
                         });
                         var totalServiceFee = $('#total-service-fee');
-                        totalServiceFee.text('Total da Taxa de Serviço: R$ ' + response.total_service_fee.toFixed(2));
+                        totalServiceFee.text('Total Conta: ' + response.total_service_fee.toFixed(2));
                     }
                 });
             }
@@ -121,12 +129,29 @@
                     type: 'POST',
                     data: { buyer_id: buyerId, product_id: productId },
                     success: function(response) {
-                        loadCostCalculation();
+                        loadBuyers();
                     }
                 });
             });
 
-            loadCostCalculation();
+            $('#link-buyer-product-btn').click(function() {
+                var buyerId = parseInt($('#buyer-select').val());
+                var productId = parseInt($('#product-select').val());
+                $.ajax({
+                    url: '/sale/buyer/addProduct',
+                    type: 'POST',
+                    data: { buyer_id: buyerId, product_id: productId },
+                    success: function(response) {
+                        loadBuyers();
+                    }
+                });
+            });
+
+
+            $('#link-buyer-pay-btn').click(function() {
+                loadCostCalculation();
+            });
+            
         });
     </script>
 </body>

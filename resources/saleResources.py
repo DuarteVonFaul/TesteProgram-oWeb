@@ -14,6 +14,7 @@ def init(app):
 
     @app.route('/sale/buyers', methods=['GET'])
     def getBuyers():
+        print(to_dict(buyers))
         return jsonify(to_dict(buyers))
 
     @app.route('/sale/products', methods=['GET'])
@@ -31,16 +32,25 @@ def init(app):
 
     @app.route('/sale/buyer/addProduct', methods=['POST'])
     def buyerAddProduct():
-        print(request.form.get('product_id'))
-        buyer_id = int(request.form.get('buyer_id'))
-        product_id = int(request.form.get('product_id'))
+        buyer_id = request.form.get('buyer_id')
+        product_id = request.form.get('product_id')
+        print(buyer_id)
+        print(product_id)
+        if buyer_id.isdigit() and product_id.isdigit():
+            buyer_id = int(buyer_id)
+            product_id = int(product_id)
 
-        if buyer_id < len(buyers) and product_id < len(products):
-            buyer = buyers[buyer_id]
-            product = products[product_id]
-            buyer.addProduct(product)
+            if buyer_id < len(buyers) and product_id < len(products):
+                buyer = buyers[buyer_id]
+                product = products[product_id]
+                if product in buyer.product :
+                    return 'Product already entered'
+                else:
+                    buyer.addProduct(product)
 
-            return 'Product added to buyer successfully'
+                return 'Product added to buyer successfully'
+            else:
+                return 'Invalid buyer or product ID'
         else:
             return 'Invalid buyer or product ID'
 
@@ -71,7 +81,6 @@ def init(app):
     @app.route('/sale/calculate', methods=['POST'])
     def calculate():
         service_fee = 0
-        json_buyers = []
 
         for product in products:
             count = 0
@@ -80,6 +89,7 @@ def init(app):
                 if product in buyer.product:
                     count += 1
                     list_buyers.append(buyer)
+                    buyer.price = 0
             for buyer in list_buyers:
                 buyer.price += float(product.price / count)
 
@@ -89,8 +99,6 @@ def init(app):
             service_fee += buyer.price
 
         global total_service_fee
-        total_service_fee += service_fee
-
+        total_service_fee = service_fee
         print(to_dict(buyers))
-
-        return jsonify({'buyers': json_buyers, 'total_service_fee': round(total_service_fee, 2)})
+        return jsonify({'buyers': to_dict(buyers), 'total_service_fee': round(total_service_fee, 2)})
